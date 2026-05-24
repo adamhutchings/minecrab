@@ -79,10 +79,11 @@ impl World {
             // No more chunks left to generate.
             return;
         }
+        self.generate_chunk(self.next_gen_x, self.next_gen_y, self.next_gen_z, rl, thread, texture);
         // increment counters
         self.next_gen_z += 1;
-        if self.next_gen_z >= WORLD_RADIUS {
-            if self.next_gen_y >= WORLD_RADIUS {
+        if self.next_gen_z > WORLD_RADIUS {
+            if self.next_gen_y > WORLD_RADIUS {
                 // y iteration finished, reset y, bump x
                 self.next_gen_x += 1;
                 self.next_gen_y = -WORLD_RADIUS;
@@ -92,7 +93,6 @@ impl World {
             // z iteration finished, reset z
             self.next_gen_z = -WORLD_RADIUS;
         }
-        self.generate_chunk(self.next_gen_x, self.next_gen_y, self.next_gen_z, rl, thread, texture);
     }
 
     fn generate_chunk(&mut self, cx: i64, cy: i64, cz: i64, rl: &mut RaylibHandle, thread: &RaylibThread, texture: ffi::Texture) {
