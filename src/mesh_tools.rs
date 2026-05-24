@@ -1,4 +1,5 @@
 use raylib::prelude::*;
+use std::ptr;
 
 pub struct VecMesh {
     pub vao_id: u32,
@@ -11,10 +12,6 @@ pub struct VecMesh {
     pub tangents: Vec<f32>,
     pub colors: Vec<u8>,
     pub indices: Vec<u16>,
-    pub bone_indices: Vec<u8>,
-    pub bone_weights: Vec<f32>,
-    pub anim_vertices: Vec<f32>,
-    pub anim_normals: Vec<f32>,
 }
 
 impl VecMesh {
@@ -29,10 +26,6 @@ impl VecMesh {
             tangents: vec![],
             colors: vec![],
             indices: vec![],
-            bone_indices: vec![],
-            bone_weights: vec![],
-            anim_vertices: vec![],
-            anim_normals: vec![],
         };
     }
 
@@ -40,7 +33,7 @@ impl VecMesh {
         self.vertices.extend_from_slice(&[v.x, v.y, v.z]);
     }
     pub fn push_texcoord(self: &mut Self, tc: Vector2) {
-        self.normals.extend_from_slice(&[tc.x, tc.y]);
+        self.texcoords.extend_from_slice(&[tc.x, tc.y]);
     }
     pub fn push_normal(self: &mut Self, n: Vector3) {
         self.normals.extend_from_slice(&[n.x, n.y, n.z]);
@@ -59,15 +52,10 @@ impl VecMesh {
             else { self.vertices.len() / 9 }
             as i32;
 
-        /* TODO? i don't know how bones work and we're probably not
-         * going to use them anyway */
-        let bone_count =
-            if self.bone_weights.len() == 0 { 0 }
-            else { panic!("unimplemented"); };
 
         fn vec_to_ptr<T>(vec: Vec<T>) -> *mut T {
             if vec.len() == 0 {
-                std::ptr::null_mut()
+                ptr::null_mut()
             } else {
                 vec.leak().as_mut_ptr()
             }
@@ -79,7 +67,7 @@ impl VecMesh {
 
             vertexCount: vertex_count,
             triangleCount: triangle_count,
-            boneCount: bone_count,
+            boneCount: 0,
 
             vertices: vec_to_ptr(self.vertices),
             texcoords: vec_to_ptr(self.texcoords),
@@ -88,10 +76,10 @@ impl VecMesh {
             tangents: vec_to_ptr(self.tangents),
             colors: vec_to_ptr(self.colors),
             indices: vec_to_ptr(self.indices),
-            boneIndices: vec_to_ptr(self.bone_indices),
-            boneWeights: vec_to_ptr(self.bone_weights),
-            animVertices: vec_to_ptr(self.anim_vertices),
-            animNormals: vec_to_ptr(self.anim_normals),
+            boneIndices: ptr::null_mut(),
+            boneWeights: ptr::null_mut(),
+            animVertices: ptr::null_mut(),
+            animNormals: ptr::null_mut(),
         };
 
         let mesh = unsafe { Mesh::from_raw(raw_mesh) };
