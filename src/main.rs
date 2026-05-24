@@ -11,7 +11,7 @@ use crate::world::generation::generate_chunk;
 
 const WINDOW_WIDTH: i32 = 1280;
 const WINDOW_HEIGHT: i32 = 720;
-const GEN_RADIUS: i64 = 1; 
+const GEN_RADIUS: i64 = 2; 
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -40,7 +40,9 @@ fn main() {
         models.push(generate_chunk(&mut rl, &thread, cx, cy, cz));
     }}}
 
-    return;
+    /* uncomment this return when profiling chunk generator */
+    //return;
+    
     // FIXME: I will be back one day, borrow checker...
     // let rl_ref = & rl;
     // let thread_ref = &thread;
