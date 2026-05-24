@@ -91,7 +91,7 @@ impl World {
         }
     }
 
-    pub fn generate_chunk(&mut self, cx: i64, cy: i64, cz: i64, rl: &mut RaylibHandle, thread: &RaylibThread, texture: ffi::Texture) {
+    fn generate_chunk(&mut self, cx: i64, cy: i64, cz: i64, rl: &mut RaylibHandle, thread: &RaylibThread, texture: ffi::Texture) {
         self.chunks.push(Chunk::new(cx, cy, cz, rl, thread, texture));
     }
 
