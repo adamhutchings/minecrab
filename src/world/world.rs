@@ -75,10 +75,12 @@ impl World {
 
     pub fn generate_next_chunk(&mut self, rl: &mut RaylibHandle, thread: &RaylibThread, texture: ffi::Texture) {
         // If there is a next chunk to generate, then do so.
-        if self.next_gen_x <= WORLD_RADIUS {
-            // Generate the chunk and then iterate on.
-            self.generate_chunk(self.next_gen_x, self.next_gen_y, self.next_gen_z, rl, thread, texture);
+        if self.next_gen_x > WORLD_RADIUS {
+            // No more chunks left to generate.
+            return;
         }
+        // Generate the chunk and then iterate on.
+        self.generate_chunk(self.next_gen_x, self.next_gen_y, self.next_gen_z, rl, thread, texture);
         if self.next_gen_y == WORLD_RADIUS {
             self.next_gen_x += 1;
             self.next_gen_y = -WORLD_RADIUS;
