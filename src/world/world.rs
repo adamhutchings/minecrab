@@ -79,15 +79,19 @@ impl World {
             // Generate the chunk and then iterate on.
             self.generate_chunk(self.next_gen_x, self.next_gen_y, self.next_gen_z, rl, thread, texture);
         }
-        if self.next_gen_y == WORLD_RADIUS {
-            self.next_gen_x += 1;
-            self.next_gen_y = -WORLD_RADIUS;
+        // increment counters
+        self.next_gen_z += 1;
+        if self.next_gen_z >= WORLD_RADIUS {
+            // z iteration finished, reset z
             self.next_gen_z = -WORLD_RADIUS;
-        } else if self.next_gen_z == WORLD_RADIUS {
+
+            // bump y
             self.next_gen_y += 1;
-            self.next_gen_z = -WORLD_RADIUS;
-        } else {
-            self.next_gen_z += 1;
+            if self.next_gen_y >= WORLD_RADIUS {
+                // y iteration finished, reset y, bump x
+                self.next_gen_x += 1;
+                self.next_gen_y = -WORLD_RADIUS;
+            }
         }
     }
 
