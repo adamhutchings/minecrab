@@ -1,6 +1,7 @@
 use raylib::prelude::*;
 
 use crate::world::generation::generate_chunk;
+use crate::world::world::World;
 
 mod mesh_tools;
 mod world;
@@ -26,17 +27,17 @@ fn main() {
     let mut first_click = false;
     let mut debug_display = false; // toggle
 
-    let texture = unsafe {
+    let texture: ffi::Texture = unsafe {
         let mut t = rl.load_texture(&thread, "assets/full-textures.png").unwrap();
         t.gen_texture_mipmaps();
         t.unwrap()
     };
 
-    let mut models: Vec<Model> = Vec::new();
+    let mut world: World = World::new();
     for cx in -4..4 {
         for cy in -4..4 {
             for cz in -4..4 {
-                models.push(generate_chunk(&mut rl, &thread, cx, cy, cz));
+                world.generate_chunk(cx, cy, cz, &mut rl, &thread, texture);
             }
         }
     }
@@ -44,13 +45,6 @@ fn main() {
     // let rl_ref = & rl;
     // let thread_ref = &thread;
     // let mut models: Vec<Model> = (-8..8).flat_map(|cx| (-8..8).flat_map(move |cy| (-8..8).map(move |cz| generate_chunk(rl_ref, thread_ref, cx, cy, cz)))).collect();
-    
-    models.iter_mut().for_each(|model| {
-        let materials = model.materials_mut();
-        let material = &mut materials[0];
-        let maps = material.maps_mut();
-        maps[MaterialMapIndex::MATERIAL_MAP_ALBEDO as usize].texture = texture;
-    });
 
     while !rl.window_should_close() {
         // require a click on the window before updating camera so the camera
@@ -70,11 +64,7 @@ fn main() {
         rl.draw(&thread, |mut d| {
             d.clear_background(Color::LIGHTBLUE);
 
-            d.draw_mode3D(camera, |mut d2, _camera| {
-                for model in &models {
-                    d2.draw_model(model, Vector3::zero(), 1., Color::WHITE);
-                }
-            });
+            world.render(&mut d, camera);
 
             if !first_click {
                 d.draw_text("WIP: Click to start updating camera", 20, 20, 16, Color::DARKGREEN);
