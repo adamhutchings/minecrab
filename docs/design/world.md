@@ -20,3 +20,9 @@ method to generate another chunk. The actual chunks making up a world are privat
 
 As far as access from a `World` object goes, the actual meshes in a `Chunk` are
 private, so it has its own `render` method.
+
+## Future Direction
+
+We want the `World` and `Chunk` objects to be more focused on storing data rather
+than render meshes and models, but so far there isn't a ton of data to access in
+this manner.
