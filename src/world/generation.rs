@@ -70,14 +70,18 @@ impl World {
         Self { chunks: HashMap::new() }
     }
 
+    pub fn get_chunk_coords_of_block(x: i64, y: i64, z: i64) -> (i64, i64, i64) {
+        (
+            if x >= 0 { x / CHUNK_SIZE } else { x / CHUNK_SIZE - 1 },
+            if y >= 0 { y / CHUNK_SIZE } else { y / CHUNK_SIZE - 1 },
+            if z >= 0 { z / CHUNK_SIZE } else { z / CHUNK_SIZE - 1 },
+        )
+    }
+
     /* returns BlockData { non_void: false } for blocks in chunks
      * that haven't been generated yet */
     pub fn get_block_data(self: &Self, x: i64, y: i64, z: i64) -> BlockData {
-        let (cx, cy, cz) = (
-            x / CHUNK_SIZE,
-            y / CHUNK_SIZE,
-            z / CHUNK_SIZE
-        );
+        let (cx, cy, cz) = World::get_chunk_coords_of_block(x, y, z);
 
         if let Some(chunk) = self.chunks.get(&(cx, cy, cz)) {
             chunk.get_block_data(x, y, z)
@@ -90,11 +94,7 @@ impl World {
     pub fn set_block_data(
         self: &mut Self, x: i64, y: i64, z: i64, value: BlockData
     ) {
-        let (cx, cy, cz) = (
-            x / CHUNK_SIZE,
-            y / CHUNK_SIZE,
-            z / CHUNK_SIZE
-        );
+        let (cx, cy, cz) = World::get_chunk_coords_of_block(x, y, z);
 
         if let Some(chunk) = self.chunks.get_mut(&(cx, cy, cz)) {
             chunk.set_block_data(x, y, z, value)
