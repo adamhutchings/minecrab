@@ -33,36 +33,14 @@ fn main() {
         t.gen_texture_mipmaps();
         t.unwrap()
     };
-    eprintln!("[minecrab] creating world...");
+
+    let mut material = rl.load_material_default(&thread);
+    let maps = material.maps_mut();
+    maps[MaterialMapIndex::MATERIAL_MAP_ALBEDO as usize].texture = texture;
 
     let mut world = World::new();
-    let mut models: Vec<Model> = Vec::new();
 
-    eprintln!("[minecrab] generating terrain...");
-    let r = 0..4;
-    for cx in r.clone() {
-    for cy in r.clone() {
-    for cz in r.clone() {
-        world.generate_terrain_chunk(cx, cy, cz);
-    }}}
-
-    eprintln!("[minecrab] building meshes...");
-    for cx in r.clone() {
-    for cy in r.clone() {
-    for cz in r.clone() {
-        let mesh = world.build_geometry_chunk(cx, cy, cz);
-        let model =
-            rl.load_model_from_mesh(&thread, unsafe { mesh.make_weak() })
-            .unwrap();
-        models.push(model);
-    }}}
-
-    models.iter_mut().for_each(|model| {
-        let materials = model.materials_mut();
-        let material = &mut materials[0];
-        let maps = material.maps_mut();
-        maps[MaterialMapIndex::MATERIAL_MAP_ALBEDO as usize].texture = texture;
-    });
+    let mut frame: i32 = 0;
     
     while !rl.window_should_close() {
         // require a click on the window before updating camera so the camera
@@ -85,8 +63,8 @@ fn main() {
             d.clear_background(Color::LIGHTBLUE);
 
             d.draw_mode3D(player.camera, |mut d2, _camera| {
-                for model in &models {
-                    d2.draw_model(model, Vector3::zero(), 1., Color::WHITE);
+                for (_, chunk) in &world.chunks {
+                    d2.draw_mesh(chunk.mesh.as_ref().unwrap(), material.clone(), Matrix::identity());
                 }
             });
 
@@ -109,12 +87,9 @@ fn main() {
             }
         });
 
-        /*
         if frame % FRAMES_PER_CHUNK == 0 {
-            world.generate_next_chunk(&mut rl, &thread, texture);
+            world.generate_next_chunk();
         }
         frame += 1;
-        */
-
     }
 }

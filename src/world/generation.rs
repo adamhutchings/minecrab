@@ -6,14 +6,14 @@ use std::collections::HashMap;
 use crate::mesh_tools::VecMesh;
 
 const CHUNK_SIZE: i64 = 32;
-const META_CHUNK_SIZE: i64 = 4;
+const WORLD_RADIUS: i64 = 2;
 
 #[derive(Clone, Copy)]
 pub struct BlockData {
     non_void: bool
 }
 
-struct Chunk {
+pub struct Chunk {
     /* absolute chunk coordinates
      * 1 unit = CHUNK_SIZE blocks */
     cx: i64, cy: i64, cz: i64,
@@ -26,11 +26,17 @@ struct Chunk {
      * for (y):
      *   for (z):
      *     for (x): */
-    voxels: Box<[BlockData]>
+    voxels: Box<[BlockData]>,
+
+    pub mesh: Option<Mesh>,
 }
 
 pub struct World {
-    chunks: HashMap<(i64, i64, i64), Chunk>
+    next_gen_x: i64,
+    next_gen_y: i64,
+    next_gen_z: i64,
+
+    pub chunks: HashMap<(i64, i64, i64), Chunk>
 }
 
 impl Chunk {
@@ -42,7 +48,7 @@ impl Chunk {
             voxels.push(BlockData { non_void: false });
         }
 
-        Self { cx, cy, cz, voxels: voxels.into_boxed_slice() }
+        Self { cx, cy, cz, voxels: voxels.into_boxed_slice(), mesh: None }
     }
 
     pub fn get_block_data(self: &Self, x: i64, y: i64, z: i64) -> BlockData {
@@ -67,7 +73,12 @@ impl Chunk {
 
 impl World {
     pub fn new() -> Self {
-        Self { chunks: HashMap::new() }
+        Self {
+            chunks: HashMap::new(),
+            next_gen_x: -WORLD_RADIUS,
+            next_gen_y: -WORLD_RADIUS,
+            next_gen_z: -WORLD_RADIUS,
+        }
     }
 
     pub fn get_chunk_coords_of_block(x: i64, y: i64, z: i64) -> (i64, i64, i64) {
@@ -131,6 +142,10 @@ impl World {
 
         for y in r.clone() { for z in r.clone() { for x in r.clone() {
             let (x, y, z) = (
+                /* FIXME: this is definitely broken on negative numbers
+                 * . or something around here is.
+                 * i'm too tired to debug this, gotta wake up early tomorrow
+                 */
                 x + CHUNK_SIZE * cx,
                 y + CHUNK_SIZE * cy,
                 z + CHUNK_SIZE * cz
@@ -251,8 +266,10 @@ impl World {
         }
     }
 
-    pub fn build_geometry_chunk(&mut self, cx: i64, cy: i64, cz: i64) -> Mesh {
+    pub fn build_geometry_chunk(&mut self, cx: i64, cy: i64, cz: i64) {
         let mut vmesh = VecMesh::new();
+        
+        assert!(self.chunks.contains_key(&(cx, cy, cz)));
 
         let r = 0..CHUNK_SIZE;
 
@@ -280,8 +297,39 @@ impl World {
         let mut mesh = vmesh.to_mesh();
         unsafe { mesh.upload(false) };
 
-        mesh
+        let chunk = self.chunks.get_mut(&(cx, cy, cz)).unwrap();
+
+        chunk.mesh = Some(mesh);
     }
+    
+    pub fn generate_next_chunk(self: &mut Self) {
+        if self.next_gen_x > WORLD_RADIUS {
+            // No more chunks left to generate.
+            return;
+        }
+
+        /* something's broken on negative coordinates. don't have time to fix */
+        let tempfix = WORLD_RADIUS;
+
+        self.generate_terrain_chunk(
+            self.next_gen_x + tempfix, self.next_gen_y + tempfix, self.next_gen_z + tempfix
+        );
+
+        self.build_geometry_chunk(
+            self.next_gen_x + tempfix, self.next_gen_y + tempfix, self.next_gen_z + tempfix
+        );
+
+        self.next_gen_z += 1;
+        if self.next_gen_z > WORLD_RADIUS {
+            self.next_gen_y += 1;
+            if self.next_gen_y > WORLD_RADIUS {
+                self.next_gen_x += 1;
+                self.next_gen_y = -WORLD_RADIUS;
+            }
+            self.next_gen_z = -WORLD_RADIUS;
+        }
+    }
+
 }
 
 
