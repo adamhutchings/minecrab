@@ -1,13 +1,11 @@
 use raylib::prelude::*;
 
-use crate::world::generation::generate_chunk;
-use crate::world::world::World;
-
 mod mesh_tools;
 mod camera_controls;
 mod world;
 
 use camera_controls::{Player, update_camera};
+use world::generation::World;
 
 
 const WINDOW_WIDTH: i32 = 1280;
@@ -36,16 +34,14 @@ fn main() {
         t.unwrap()
     };
 
-    let mut world: World = World::new();
-    // FIXME: I will be back one day, borrow checker...
-    // let rl_ref = & rl;
-    // let thread_ref = &thread;
-    // let mut models: Vec<Model> = (-8..8).flat_map(|cx| (-8..8).flat_map(move |cy| (-8..8).map(move |cz| generate_chunk(rl_ref, thread_ref, cx, cy, cz)))).collect();
+    let mut material = rl.load_material_default(&thread);
+    let maps = material.maps_mut();
+    maps[MaterialMapIndex::MATERIAL_MAP_ALBEDO as usize].texture = texture;
 
     let mut world = World::new();
 
-    let mut frame = 0;
-
+    let mut frame: i32 = 0;
+    
     while !rl.window_should_close() {
         // require a click on the window before updating camera so the camera
         // doesn't fly away when the cursor enters the window at first
@@ -66,7 +62,11 @@ fn main() {
         rl.draw(&thread, |mut d| {
             d.clear_background(Color::LIGHTBLUE);
 
-            world.render(&mut d, player.camera);
+            d.draw_mode3D(player.camera, |mut d2, _camera| {
+                for (_, chunk) in &world.chunks {
+                    d2.draw_mesh(chunk.mesh.as_ref().unwrap(), material.clone(), Matrix::identity());
+                }
+            });
 
             if !first_click {
                 d.draw_text("WIP: Click to start updating camera", 20, 20, 16, Color::DARKGREEN);
@@ -88,9 +88,8 @@ fn main() {
         });
 
         if frame % FRAMES_PER_CHUNK == 0 {
-            world.generate_next_chunk(&mut rl, &thread, texture);
+            world.generate_next_chunk();
         }
         frame += 1;
-
     }
 }
