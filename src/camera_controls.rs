@@ -14,7 +14,7 @@ mod keys {
 }
 
 const DEFAULT_SPEED: f32 = 0.01;
-const FRICTION: f32 = 0.05;
+const FRICTION: f32 = 0.15;
 const MOUSE_SENS: f32 = 0.005;
 
 // "Player". Controls the current position and their momentum.
@@ -58,9 +58,7 @@ fn get_input_axis(rl: &mut RaylibHandle, neg: KeyboardKey, pos: KeyboardKey) -> 
 
 /* step from the current velocity towards the new velocity by FRICTION */
 fn movement_smooth(from: f32, to: f32) -> f32 {
-    let step = FRICTION;
-    if from < to { (from + step).min(to)
-    } else { (from - step).max(to) }
+    from + (to - from) * FRICTION
 }
 
 pub fn update_camera(player: &mut Player, rl: &mut RaylibHandle) {
