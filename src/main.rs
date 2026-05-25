@@ -1,12 +1,12 @@
 use raylib::prelude::*;
 
-mod mesh_tools;
 mod camera_controls;
+mod render;
 mod world;
 
 use camera_controls::{Player, update_camera};
+use render::mesh_tools;
 use world::generation::World;
-
 
 const WINDOW_WIDTH: i32 = 1280;
 const WINDOW_HEIGHT: i32 = 720;
