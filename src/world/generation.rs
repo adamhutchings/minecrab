@@ -7,7 +7,7 @@ use crate::mesh_tools::VecMesh;
 use crate::render::worldmesh;
 use crate::world::blocks::BlockData;
 
-const CHUNK_SIZE: i64 = 32;
+pub const CHUNK_SIZE: i64 = 32;
 const WORLD_RADIUS: i64 = 2;
 
 pub struct Chunk {
@@ -158,39 +158,7 @@ impl World {
     }
 
     pub fn build_geometry_chunk(&mut self, cx: i64, cy: i64, cz: i64) {
-        let mut vmesh = VecMesh::new();
-        
-        assert!(self.chunks.contains_key(&(cx, cy, cz)));
-
-        let r = 0..CHUNK_SIZE;
-
-        for y in r.clone() { for z in r.clone() { for x in r.clone() {
-            let (x, y, z) = (
-                x + CHUNK_SIZE * cx,
-                y + CHUNK_SIZE * cy,
-                z + CHUNK_SIZE * cz
-            );
-            self.build_geometry_voxel(&mut vmesh, x, y, z);
-        }}}
-
-
-        vmesh.indices.resize(vmesh.vertices.len() / 2, 0);
-        for i in 0..vmesh.vertices.len() / 12 {
-            let k = i as u16;
-            vmesh.indices[6 * i] = 4 * k;
-            vmesh.indices[6 * i + 1] = 4 * k + 1;
-            vmesh.indices[6 * i + 2] = 4 * k + 2;
-            vmesh.indices[6 * i + 3] = 4 * k;
-            vmesh.indices[6 * i + 4] = 4 * k + 2;
-            vmesh.indices[6 * i + 5] = 4 * k + 3;
-        }
-
-        let mut mesh = vmesh.to_mesh();
-        unsafe { mesh.upload(false) };
-
-        let chunk = self.chunks.get_mut(&(cx, cy, cz)).unwrap();
-
-        chunk.mesh = Some(mesh);
+        worldmesh::build_geometry_chunk(self, cx, cy, cz);
     }
     
     pub fn generate_next_chunk(self: &mut Self) {

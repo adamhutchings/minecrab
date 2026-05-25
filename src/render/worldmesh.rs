@@ -1,5 +1,7 @@
+use raylib::prelude::*;
+
 use crate::mesh_tools::VecMesh;
-use crate::world::generation::World;
+use crate::world::generation::{Chunk, CHUNK_SIZE, World};
 
 pub fn build_geometry_voxel(
     world: &mut World, vmesh: &mut VecMesh, x: i64, y: i64, z: i64
@@ -111,4 +113,40 @@ pub fn build_geometry_voxel(
             dx, dy, dz,
         ]);
     }
+}
+
+pub fn build_geometry_chunk(world: &mut World, cx: i64, cy: i64, cz: i64) {
+    let mut vmesh = VecMesh::new();
+    
+    assert!(world.chunks.contains_key(&(cx, cy, cz)));
+
+    let r = 0..CHUNK_SIZE;
+
+    for y in r.clone() { for z in r.clone() { for x in r.clone() {
+        let (x, y, z) = (
+            x + CHUNK_SIZE * cx,
+            y + CHUNK_SIZE * cy,
+            z + CHUNK_SIZE * cz
+        );
+        build_geometry_voxel(world, &mut vmesh, x, y, z);
+    }}}
+
+
+    vmesh.indices.resize(vmesh.vertices.len() / 2, 0);
+    for i in 0..vmesh.vertices.len() / 12 {
+        let k = i as u16;
+        vmesh.indices[6 * i] = 4 * k;
+        vmesh.indices[6 * i + 1] = 4 * k + 1;
+        vmesh.indices[6 * i + 2] = 4 * k + 2;
+        vmesh.indices[6 * i + 3] = 4 * k;
+        vmesh.indices[6 * i + 4] = 4 * k + 2;
+        vmesh.indices[6 * i + 5] = 4 * k + 3;
+    }
+
+    let mut mesh = vmesh.to_mesh();
+    unsafe { mesh.upload(false) };
+
+    let chunk = world.chunks.get_mut(&(cx, cy, cz)).unwrap();
+
+    chunk.mesh = Some(mesh);
 }
