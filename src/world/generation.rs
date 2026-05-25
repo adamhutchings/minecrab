@@ -1,6 +1,7 @@
 use noise::{NoiseFn, SuperSimplex};
 use raylib::prelude::*;
 
+use std::collections::HashMap;
 
 use crate::mesh_tools::VecMesh;
 
@@ -28,22 +29,8 @@ struct Chunk {
     voxels: Box<[BlockData]>
 }
 
-struct MetaChunk {
-    /* absolute meta_chunk coordinates.
-     * 1 unit = CHUNK_SIZE * META_CHUNK_SIZE blocks */
-    mx: i64, my: i64, mz: i64,
-
-    /* always must have length META_CHUNK_SIZE ^ 3 
-    *  ordered the same way as Chunk.voxels */
-    chunks: Box<[Chunk]>
-}
-
 pub struct World {
-
-    /* in the future...
-     *
-     * meta_chunks: HashMap<(i64, i64, i64), MetaChunk> */
-    meta_chunk: MetaChunk
+    chunks: HashMap<(i64, i64, i64), Chunk>
 }
 
 impl Chunk {
@@ -78,81 +65,42 @@ impl Chunk {
     }
 }
 
-impl MetaChunk {
-    pub fn new(mx: i64, my: i64, mz: i64) -> Self {
-        let mcs = META_CHUNK_SIZE;
-        let chunk_count = mcs * mcs * mcs;
-        let mut chunks = Vec::with_capacity(chunk_count as usize);
-
-        let r = 0..META_CHUNK_SIZE;
-        for ly in r.clone() { for lz in r.clone() { for lx in r.clone() {
-            let (cx, cy, cz) = (mx * mcs + lx, my * mcs + ly, mz * mcs + lz);
-            chunks.push(Chunk::new(cx, cy, cz));
-        }}}
-
-        Self { mx, my, mz, chunks: chunks.into_boxed_slice() }
-    }
-
-    pub fn get_block_data(self: &Self, x: i64, y: i64, z: i64) -> BlockData {
-        let chunk = &self.chunks[self.get_chunk_idx_of_block(x, y, z)];
-
-        chunk.get_block_data(x, y, z)
-    }
-    
-    pub fn set_block_data(
-        self: &mut Self, x: i64, y: i64, z: i64, value: BlockData
-    ) {
-        let chunk = &mut self.chunks[self.get_chunk_idx_of_block(x, y, z)];
-
-        chunk.set_block_data(x, y, z, value)
-    }
-    
-    fn get_chunk_idx_of_block(self: &Self, x: i64, y: i64, z: i64) -> usize {
-        let mcs = META_CHUNK_SIZE;
-        let cs = CHUNK_SIZE;
-
-        /* absolute chunk coordinates */
-        let (cx, cy, cz) = (x / cs, y / cs, z / cs);
-        
-        /* local chunk coordinates */
-        let (lx, ly, lz) = (
-            cx - self.mx * mcs,
-            cy - self.my * mcs,
-            cz - self.mz * mcs
-        );
-
-        for coordinate in [lx, ly, lz] {
-            assert!(
-                coordinate >= 0 && coordinate < mcs,
-                "block coordinate out of bounds: {}, {}, {}",
-                x, y, z
-            );
-        }
-
-        let idx = ly * mcs * mcs + lz * mcs + lx;
-        idx as usize
-    }
-}
-
 impl World {
     pub fn new() -> Self {
-        Self { meta_chunk: MetaChunk::new(0, 0, 0) }
+        Self { chunks: HashMap::new() }
     }
 
+    /* returns BlockData { non_void: false } for blocks in chunks
+     * that haven't been generated yet */
     pub fn get_block_data(self: &Self, x: i64, y: i64, z: i64) -> BlockData {
-        for coordinate in [x, y, z] {
-            if coordinate < 0 || coordinate >= META_CHUNK_SIZE * CHUNK_SIZE {
-                /* out of this world! */
-                return BlockData { non_void: false }
-            }
+        let (cx, cy, cz) = (
+            x / CHUNK_SIZE,
+            y / CHUNK_SIZE,
+            z / CHUNK_SIZE
+        );
+
+        if let Some(chunk) = self.chunks.get(&(cx, cy, cz)) {
+            chunk.get_block_data(x, y, z)
+        } else {
+            BlockData { non_void: false }
         }
-        self.meta_chunk.get_block_data(x, y, z)
     }
 
+    /* panics if used in a chunk that hasn't been generated yet */
     pub fn set_block_data(
         self: &mut Self, x: i64, y: i64, z: i64, value: BlockData
     ) {
-        self.meta_chunk.set_block_data(x, y, z, value);
+        let (cx, cy, cz) = (
+            x / CHUNK_SIZE,
+            y / CHUNK_SIZE,
+            z / CHUNK_SIZE
+        );
+
+        if let Some(chunk) = self.chunks.get_mut(&(cx, cy, cz)) {
+            chunk.set_block_data(x, y, z, value)
+        } else {
+            panic!("set block data in a chunk that doesn't exist");
+        }
     }
 
     fn generate_terrain_voxel(self: &mut Self, x: i64, y: i64, z: i64) {
@@ -175,6 +123,10 @@ impl World {
     }
 
     pub fn generate_terrain_chunk(self: &mut Self, cx: i64, cy: i64, cz: i64) {
+        let existing_chunk =
+            self.chunks.insert((cx, cy, cz), Chunk::new(cx, cy, cz));
+        assert!(existing_chunk.is_none());
+
         let r = 0..CHUNK_SIZE;
 
         for y in r.clone() { for z in r.clone() { for x in r.clone() {
@@ -329,17 +281,6 @@ impl World {
         unsafe { mesh.upload(false) };
 
         mesh
-
-            /*
-        // FIXME: my theory is that vao and vbo should now be initialized
-        // unfortunately there seems to be no way to check (?)
-        // dbg!(mesh.to_raw().vaoId);
-        // dbg!(mesh.to_raw().vboId);
-
-        //let model = rl.load_model_from_mesh(thread, unsafe { mesh.make_weak() }).unwrap();
-
-        model
-            */
     }
 }
 
