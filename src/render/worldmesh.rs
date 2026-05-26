@@ -1,13 +1,14 @@
 use raylib::prelude::*;
 
 use crate::mesh_tools::VecMesh;
-use crate::world::blocks::BlockData;
+use crate::world::blocks::{BlockData, GRASS_COORDS};
 use crate::world::generation::{Chunk, CHUNK_SIZE, World};
 
 pub fn build_geometry_voxel(
     world: &mut World, vmesh: &mut VecMesh, x: i64, y: i64, z: i64
 ) {
     if world.get_block_data(x, y, z) == BlockData::AIR { return }
+    let base = GRASS_COORDS;
     for (dx, dy, dz) in [
         (-1, 0, 0),
         (1, 0, 0),
@@ -33,10 +34,10 @@ pub fn build_geometry_voxel(
                 x + 1., y, z + 1.,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                0.1, 0.0,
-                0.1, 0.1,
-                0.0, 0.1,
-                0.0, 0.0,
+                base.right.0 + 0.1, base.right.1 + 0.0,
+                base.right.0 + 0.1, base.right.1 + 0.1,
+                base.right.0 + 0.0, base.right.1 + 0.1,
+                base.right.0 + 0.0, base.right.1 + 0.0,
             ]);
         } else if dx == -1 {
             vmesh.vertices.extend_from_slice(&[
@@ -46,10 +47,10 @@ pub fn build_geometry_voxel(
                 x, y + 1., z,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                0.0, 0.0,
-                0.1, 0.0,
-                0.1, 0.1,
-                0.0, 0.1,
+                base.left.0 + 0.0, base.left.1 + 0.0,
+                base.left.0 + 0.1, base.left.1 + 0.0,
+                base.left.0 + 0.1, base.left.1 + 0.1,
+                base.left.0 + 0.0, base.left.1 + 0.1,
             ]);
         } else if dy == 1 {
             vmesh.vertices.extend_from_slice(&[
@@ -59,10 +60,10 @@ pub fn build_geometry_voxel(
                 x + 1., y + 1., z,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                0.0, 0.1,
-                0.0, 0.0,
-                0.1, 0.0,
-                0.1, 0.1,
+                base.top.0 + 0.0, base.top.1 + 0.1,
+                base.top.0 + 0.0, base.top.1 + 0.0,
+                base.top.0 + 0.1, base.top.1 + 0.0,
+                base.top.0 + 0.1, base.top.1 + 0.1,
             ]);
         } else if dy == -1 {
             vmesh.vertices.extend_from_slice(&[
@@ -72,10 +73,10 @@ pub fn build_geometry_voxel(
                 x, y, z + 1.,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                0.0, 0.0,
-                0.1, 0.0,
-                0.1, 0.1,
-                0.0, 0.1,
+                base.bottom.0 + 0.0, base.bottom.1 + 0.0,
+                base.bottom.0 + 0.1, base.bottom.1 + 0.0,
+                base.bottom.0 + 0.1, base.bottom.1 + 0.1,
+                base.bottom.0 + 0.0, base.bottom.1 + 0.1,
             ]);
         } else if dz == 1 {
             vmesh.vertices.extend_from_slice(&[
@@ -85,10 +86,10 @@ pub fn build_geometry_voxel(
                 x, y + 1., z + 1.0,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                0.0, 0.0,
-                0.1, 0.0,
-                0.1, 0.1,
-                0.0, 0.1,
+                base.front.0 + 0.0, base.front.1 + 0.0,
+                base.front.0 + 0.1, base.front.1 + 0.0,
+                base.front.0 + 0.1, base.front.1 + 0.1,
+                base.front.0 + 0.0, base.front.1 + 0.1,
             ]);
         } else if dz == -1 {
             vmesh.vertices.extend_from_slice(&[
@@ -98,10 +99,10 @@ pub fn build_geometry_voxel(
                 x + 1., y, z,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                0.1, 0.0,
-                0.1, 0.1,
-                0.0, 0.1,
-                0.0, 0.0,
+                base.back.0 + 0.1, base.back.1 + 0.0,
+                base.back.0 + 0.1, base.back.1 + 0.1,
+                base.back.0 + 0.0, base.back.1 + 0.1,
+                base.back.0 + 0.0, base.back.1 + 0.0,
             ]);
         }
 
