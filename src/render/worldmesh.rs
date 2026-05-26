@@ -1,12 +1,13 @@
 use raylib::prelude::*;
 
 use crate::mesh_tools::VecMesh;
+use crate::world::blocks::BlockData;
 use crate::world::generation::{Chunk, CHUNK_SIZE, World};
 
 pub fn build_geometry_voxel(
     world: &mut World, vmesh: &mut VecMesh, x: i64, y: i64, z: i64
 ) {
-    if !world.get_block_data(x, y, z).non_void { return }
+    if world.get_block_data(x, y, z) == BlockData::AIR { return }
     for (dx, dy, dz) in [
         (-1, 0, 0),
         (1, 0, 0),
@@ -15,7 +16,7 @@ pub fn build_geometry_voxel(
         (0, 0, -1),
         (0, 0, 1),
     ] {
-        if world.get_block_data(x + dx, y + dy, z + dz).non_void {
+        if world.get_block_data(x + dx, y + dy, z + dz) != BlockData::AIR {
             continue;
         }
 

@@ -39,7 +39,7 @@ impl Chunk {
         let mut voxels = Vec::with_capacity(voxel_count as usize);
 
         for _ in 0..voxel_count {
-            voxels.push(BlockData { non_void: false });
+            voxels.push(BlockData::AIR);
         }
 
         Self { cx, cy, cz, voxels: voxels.into_boxed_slice() }
@@ -91,7 +91,7 @@ impl World {
         if let Some(chunk) = self.chunks.get(&(cx, cy, cz)) {
             chunk.get_block_data(x, y, z)
         } else {
-            BlockData { non_void: false }
+            BlockData::AIR
         }
     }
 
@@ -120,9 +120,9 @@ impl World {
             (z as f64 / noise_scale)
         ];
 
-        let block_data = BlockData {
-            non_void: SSN.get(sample_point) > 0.5
-        };
+        let block_data = if (
+            SSN.get(sample_point) > 0.5
+        ) {BlockData::GRASS} else {BlockData::AIR};
 
         self.set_block_data(x, y, z, block_data);
     }

@@ -1,4 +1,5 @@
-#[derive(Clone, Copy)]
-pub struct BlockData {
-    pub non_void: bool
+#[derive(Clone, Copy, PartialEq)]
+pub enum BlockData {
+    AIR,
+    GRASS,
 }
