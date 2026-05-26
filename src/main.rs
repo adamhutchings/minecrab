@@ -1,12 +1,13 @@
 use raylib::prelude::*;
 
-mod mesh_tools;
 mod player;
+mod render;
 mod world;
 
 use player::{Player, update_camera};
 use world::generation::World;
 
+use crate::render::mesh_tools;
 use crate::render::worldmesh::WorldRenderer;
 
 const WINDOW_WIDTH: i32 = 1280;
