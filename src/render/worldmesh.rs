@@ -34,10 +34,10 @@ pub fn build_geometry_voxel(
                 x + 1., y, z + 1.,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                base.right.0 + 0.1, base.right.1 + 0.0,
                 base.right.0 + 0.1, base.right.1 + 0.1,
-                base.right.0 + 0.0, base.right.1 + 0.1,
+                base.right.0 + 0.1, base.right.1 + 0.0,
                 base.right.0 + 0.0, base.right.1 + 0.0,
+                base.right.0 + 0.0, base.right.1 + 0.1,
             ]);
         } else if dx == -1 {
             vmesh.vertices.extend_from_slice(&[
@@ -47,10 +47,10 @@ pub fn build_geometry_voxel(
                 x, y + 1., z,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                base.left.0 + 0.0, base.left.1 + 0.0,
-                base.left.0 + 0.1, base.left.1 + 0.0,
-                base.left.0 + 0.1, base.left.1 + 0.1,
                 base.left.0 + 0.0, base.left.1 + 0.1,
+                base.left.0 + 0.1, base.left.1 + 0.1,
+                base.left.0 + 0.1, base.left.1 + 0.0,
+                base.left.0 + 0.0, base.left.1 + 0.0,
             ]);
         } else if dy == 1 {
             vmesh.vertices.extend_from_slice(&[
@@ -86,10 +86,10 @@ pub fn build_geometry_voxel(
                 x, y + 1., z + 1.0,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                base.front.0 + 0.0, base.front.1 + 0.0,
-                base.front.0 + 0.1, base.front.1 + 0.0,
-                base.front.0 + 0.1, base.front.1 + 0.1,
                 base.front.0 + 0.0, base.front.1 + 0.1,
+                base.front.0 + 0.1, base.front.1 + 0.1,
+                base.front.0 + 0.1, base.front.1 + 0.0,
+                base.front.0 + 0.0, base.front.1 + 0.0,
             ]);
         } else if dz == -1 {
             vmesh.vertices.extend_from_slice(&[
@@ -99,10 +99,10 @@ pub fn build_geometry_voxel(
                 x + 1., y, z,
             ]);
             vmesh.texcoords.extend_from_slice(&[
-                base.back.0 + 0.1, base.back.1 + 0.0,
                 base.back.0 + 0.1, base.back.1 + 0.1,
-                base.back.0 + 0.0, base.back.1 + 0.1,
+                base.back.0 + 0.1, base.back.1 + 0.0,
                 base.back.0 + 0.0, base.back.1 + 0.0,
+                base.back.0 + 0.0, base.back.1 + 0.1,
             ]);
         }
 
