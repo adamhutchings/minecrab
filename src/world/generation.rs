@@ -129,6 +129,8 @@ impl World {
                 BlockData::AIR
             } else if y == height {
                 BlockData::GRASS
+            } else if y > height-3 {
+                BlockData::DIRT
             } else if y > 4 {
                 BlockData::STONE
             } else {
