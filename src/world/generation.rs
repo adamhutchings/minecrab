@@ -108,20 +108,23 @@ impl World {
         }
     }
 
-    fn generate_terrain_column(self: &mut Self, x: i64, z: i64, cy: i64) { // generate in columns to avoid unnecessary regeneration
+    fn generate_terrain_column(self: &mut Self, x: i64, z: i64, cy: i64) {
+        // Generates one column within a chunk
         static SSN: std::sync::LazyLock<SuperSimplex> =
             std::sync::LazyLock::new(|| SuperSimplex::new(42));
-
-        let noise_scale = 80.; // setting this too low (<8 or so) bizarrely results in a "attempt to multiply with overflow" error
+        
+        // How shallow slopes are. Don't set below 16 or it will error. 
+        let noise_scale = 80.;
 
         let sample_point = [
             ((x as f64 / noise_scale)),
             ((z as f64 / noise_scale))
         ];
 
+        // arbitrary constants, give a height map between 4*12 and 6*12
         let height = (SSN.get(sample_point) + 5_f64) * 12_f64; 
 
-        for y in (CHUNK_SIZE*cy)..(CHUNK_SIZE*(cy+1)) { // compiler can probably optimize this
+        for y in (CHUNK_SIZE * cy)..(CHUNK_SIZE * (cy + 1)) {
             let block_data = if height < y as f64 {
                 BlockData::AIR
             } else if height < (y - 1) as f64 {
