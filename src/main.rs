@@ -34,6 +34,10 @@ fn main() {
 
     let mut update_camera_in = 0_f32; // time until we run update_camera()
 
+    let audio_stream = RaylibAudio::init_audio_device().expect("Can init audio.");
+    let open_sound = audio_stream.new_sound(&"assets/audio/menu-open.ogg").expect("Load sound");
+    let close_sound = audio_stream.new_sound(&"assets/audio/menu-close.ogg").expect("Load sound");
+
     let mut t = rl
         .load_texture(&thread, "assets/full-textures.png")
         .expect("Should load 'assets/full-textures.png'.");
@@ -70,6 +74,7 @@ fn main() {
         }
         if rl.is_key_pressed(KeyboardKey::KEY_BACKSLASH) && first_click { // toggle debug menu
             debug_display = !debug_display;
+            if debug_display { open_sound.play() } else { close_sound.play() };
         }
 
 
