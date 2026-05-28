@@ -154,8 +154,7 @@ pub fn build_geometry_chunk(world: &mut World, cx: i64, cy: i64, cz: i64) -> Mes
 }
 
 pub struct WorldRenderer {
-    // Right now, all we need is a list of meshes to render.
-    // IN THE FUTURE, this should be a map of some sort.
+    // Meshes are stored with a key of their chunk index
     chunk_meshes: HashMap<(i64, i64, i64), Mesh>,
     material: WeakMaterial,
 }
@@ -170,6 +169,7 @@ impl WorldRenderer {
     }
 
     pub fn add_mesh(&mut self, cx: i64, cy: i64, cz: i64, mesh: Mesh) {
+        // Insert will overwrite the mesh based on their chunk index
         self.chunk_meshes.insert((cx, cy, cz), mesh);
     }
 
