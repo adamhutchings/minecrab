@@ -10,6 +10,7 @@ use player::{Player, update_camera_angle, update_camera_position};
 use world::generation::World;
 
 use crate::render::mesh_tools;
+use crate::render::skybox::create_skybox_mesh;
 use crate::render::worldmesh::WorldRenderer;
 
 const WINDOW_WIDTH: i32 = 1280;
@@ -47,6 +48,17 @@ fn main() {
     t.gen_texture_mipmaps();
 
     let texture: ffi::Texture = unsafe { t.unwrap() };
+
+    let mut skybox_mesh: Mesh = create_skybox_mesh();
+    let mut skybox_material = rl.load_material_default(&thread);
+    unsafe {
+        let shader = rl.load_shader(
+            &thread,
+            Some("src/shader/skybox.vert"), 
+            Some("src/shader/skybox.frag")
+        );
+        skybox_material.shader = shader.unwrap();
+    }
 
     let mut material = rl.load_material_default(&thread);
     unsafe {
@@ -90,6 +102,19 @@ fn main() {
 
         rl.draw(&thread, |mut d| {
             d.clear_background(Color::LIGHTBLUE);
+
+            // Skybox
+
+            // So that the skybox doesn't move with the player but still keeps
+            // the player's rotation, we create an independent copy of the camera
+            // which is shifted back toward the origin always.
+            let mut skybox_cam = player.camera.clone();
+            skybox_cam.position = Vector3::new(0.0, 0.0, 0.0);
+            skybox_cam.target -= player.camera.position;
+
+            d.draw_mode3D(skybox_cam, |mut d2, _camera| {
+                d2.draw_mesh(&mut skybox_mesh, skybox_material.clone(), Matrix::identity());
+            });
 
             world_renderer.render(&mut d, player.camera);
 
