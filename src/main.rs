@@ -87,7 +87,7 @@ fn main() {
     skybox_material.shader = *skybox_shader.as_ref();
 
     let mut material = rl.load_material_default(&thread);
-    let block_shader = rl.load_shader(
+    let mut block_shader = rl.load_shader(
         &thread, 
         Some("src/shader/block.vert"), 
         Some("src/shader/block.frag")
@@ -163,8 +163,10 @@ fn main() {
             skybox_cam.target -= player.camera.position;
 
             let day_amount: f32 = day_amount(frame);
-            let day_amount_loc = skybox_shader.get_shader_location("dayAmount");
-            skybox_shader.set_shader_value(day_amount_loc, day_amount);
+            let skybox_loc = skybox_shader.get_shader_location("dayAmount");
+            let block_loc = block_shader.get_shader_location("dayAmount");
+            skybox_shader.set_shader_value(skybox_loc, day_amount);
+            block_shader.set_shader_value(block_loc, day_amount);
 
             d.draw_mode3D(skybox_cam, |mut d2, _camera| {
                 d2.draw_mesh(&mut skybox_mesh, skybox_material.clone(), Matrix::identity());

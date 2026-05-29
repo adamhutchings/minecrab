@@ -8,7 +8,10 @@ out vec4 fragColor;
 
 uniform sampler2D tex;
 
+uniform float dayAmount;
+
 void main() {
+
     fragColor = texture(tex, fragTexCoord);
     float up = dot(fragVertexNormal, vec3(0.0, 1.0, 0.0));
     float east = dot(fragVertexNormal, vec3(1.0, 0.0, 0.0));
@@ -26,4 +29,10 @@ void main() {
         }
         fragColor *= vec4(shade, shade, shade, 1.0);
     }
+
+    // Things are brighter during the day and darker at night.
+    // 1.0 in the day and 0.25 at night.
+    float lightModifier = dayAmount * 0.75 + 0.25;
+    fragColor *= vec4(lightModifier, lightModifier, lightModifier, 1.0);
+
 }
