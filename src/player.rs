@@ -16,6 +16,7 @@ mod keys {
 
 const DEFAULT_SPEED: f32 = 0.2;
 const FRICTION: f32 = 0.15;
+const BLOCK_FRICTION: f32 = 0.25;
 const MOUSE_SENS: f32 = 0.005;
 
 // We treat the camera as being near but not at the top of the player.
@@ -45,7 +46,9 @@ pub struct Player {
 impl Player {
     pub fn new(pd: &PlayerData) -> Player {
         let camera =
-            Camera3D::perspective(pd.pos, pd.fwd, Vector3::new(0.0, 1.0, 0.0), 45.0);
+            Camera3D::perspective(
+                camera_pos_from_player_pos(pd.pos),
+                camera_pos_from_player_pos(pd.fwd), Vector3::new(0.0, 1.0, 0.0), 45.0);
 
         Player { camera }
     }
