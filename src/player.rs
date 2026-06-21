@@ -54,8 +54,8 @@ impl Player {
     }
 
     pub fn reset_player(&mut self, pd: &PlayerData) {
-        self.camera.position = pd.pos;
-        self.camera.target = pd.fwd;
+        self.camera.position = camera_pos_from_player_pos(pd.pos);
+        self.camera.target = camera_pos_from_player_pos(pd.fwd);
     }
 
     pub fn update_camera(&mut self, pd: &mut PlayerData, interp: f32) {
