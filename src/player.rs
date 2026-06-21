@@ -18,6 +18,17 @@ const DEFAULT_SPEED: f32 = 0.2;
 const FRICTION: f32 = 0.15;
 const MOUSE_SENS: f32 = 0.005;
 
+// We treat the camera as being near but not at the top of the player.
+const PLAYER_HEIGHT: f32 = 1.8;
+const CAMERA_HEIGHT: f32 = 1.6;
+// Assume a spherical cow ...
+const PLAYER_RADIUS: f32 = 0.5;
+
+// From where the player is, get the camera position
+fn camera_pos_from_player_pos(ppos: Vector3) -> Vector3 {
+    ppos + Vector3{x: 0.0, y: CAMERA_HEIGHT, z: 0.0}
+}
+
 fn get_input_axis(rl: &mut RaylibHandle, neg: KeyboardKey, pos: KeyboardKey) -> f32 {
     f32::from(rl.is_key_down(pos)) - f32::from(rl.is_key_down(neg))
 }
@@ -46,11 +57,11 @@ impl Player {
 
     pub fn update_camera(&mut self, pd: &mut PlayerData, interp: f32) {
         pd.pos = pd.prev_pos + (pd.next_pos - pd.prev_pos) * interp;
-        self.camera.position = pd.pos;
+        self.camera.position = camera_pos_from_player_pos(pd.pos);
 
         pd.fwd =
-            self.camera.position + pd.prev_fwd + (pd.next_fwd - pd.prev_fwd) * interp;
-        self.camera.target = pd.fwd;
+            pd.pos + pd.prev_fwd + (pd.next_fwd - pd.prev_fwd) * interp;
+        self.camera.target = camera_pos_from_player_pos(pd.fwd);
     }
 
     pub fn process_tick(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle) {
