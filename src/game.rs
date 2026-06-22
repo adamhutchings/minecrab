@@ -211,7 +211,7 @@ impl GameController {
             self.game_data.tick_counter += 1;
 
             self.player
-                .process_tick(&mut self.game_data.player_data, rl);
+                .process_tick(&mut self.game_data.player_data, rl, &self.game_data.world);
 
             if rl.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) {
                 let hit = self.hit_voxel_from_player();

@@ -62,7 +62,7 @@ impl Player {
 
     pub fn update_camera(&mut self, pd: &mut PlayerData, interp: f32, world: &World) {
         let target_pos = pd.prev_pos + (pd.next_pos - pd.prev_pos) * interp;
-        pd.pos = Self::next_pos_until_coll(pd.pos, target_pos, world);
+        pd.pos = target_pos; // Self::next_pos_until_coll(pd.pos, target_pos, world);
         self.camera.position = camera_pos_from_player_pos(pd.pos);
 
         pd.fwd =
@@ -70,9 +70,9 @@ impl Player {
         self.camera.target = camera_pos_from_player_pos(pd.fwd);
     }
 
-    pub fn process_tick(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle) {
+    pub fn process_tick(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle, world: &World) {
         (pd.prev_pos, pd.prev_fwd) = (pd.next_pos, pd.next_fwd);
-        self.handle_input(pd, rl);
+        self.handle_input(pd, rl, world);
     }
 
     // This gets the next position, but only steps forward in the requested
@@ -110,7 +110,7 @@ impl Player {
         current_pos + direction * distance
     }
 
-    fn handle_input(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle) {
+    fn handle_input(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle, world: &World) {
         let mouse_delta = rl.get_mouse_delta();
 
         pd.view_azim += mouse_delta.x * MOUSE_SENS;
@@ -166,7 +166,7 @@ impl Player {
             z: movement_smooth(pd.momentum.z, raw_momentum.z),
         };
 
-        pd.next_pos += pd.momentum * pd.speed;
+        pd.next_pos = Self::next_pos_until_coll(pd.next_pos, pd.next_pos + pd.momentum * pd.speed, world);
         pd.next_fwd = forward;
     }
 }
