@@ -211,7 +211,7 @@ impl GameController {
             self.game_data.tick_counter += 1;
 
             self.player
-                .process_tick(&mut self.game_data.player_data, rl, &self.game_data.world);
+                .process_tick(&mut self.game_data.player_data, rl);
 
             if rl.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) {
                 let hit = self.hit_voxel_from_player();
@@ -319,7 +319,7 @@ impl GameController {
         let interp = 1. - (self.next_tick_in / TICK_LENGTH).clamp(0., 1.);
         if !self.paused {
             self.player
-                .update_camera(&mut self.game_data.player_data, interp);
+                .update_camera(&mut self.game_data.player_data, interp, &self.game_data.world);
         }
     }
 

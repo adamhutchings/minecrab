@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{player, world::{collision::voxel_raycast, generation::World}};
+use crate::{world::{collision::voxel_raycast, generation::World}};
 
 mod keys {
     use raylib::prelude::{KeyboardKey, KeyboardKey::*};
@@ -60,8 +60,9 @@ impl Player {
         self.camera.target = camera_pos_from_player_pos(pd.fwd);
     }
 
-    pub fn update_camera(&mut self, pd: &mut PlayerData, interp: f32) {
-        pd.pos = pd.prev_pos + (pd.next_pos - pd.prev_pos) * interp;
+    pub fn update_camera(&mut self, pd: &mut PlayerData, interp: f32, world: &World) {
+        let target_pos = pd.prev_pos + (pd.next_pos - pd.prev_pos) * interp;
+        pd.pos = Self::next_pos_until_coll(pd.pos, target_pos, world);
         self.camera.position = camera_pos_from_player_pos(pd.pos);
 
         pd.fwd =
@@ -69,34 +70,35 @@ impl Player {
         self.camera.target = camera_pos_from_player_pos(pd.fwd);
     }
 
-    pub fn process_tick(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle, world: &World) {
+    pub fn process_tick(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle) {
         (pd.prev_pos, pd.prev_fwd) = (pd.next_pos, pd.next_fwd);
-        self.handle_input(pd, rl, world);
+        self.handle_input(pd, rl);
     }
 
     // This gets the next position, but only steps forward in the requested
     // direction until the player collides with a block. This way we can handle
     // motion appropriately.
-    fn next_pos_until_coll(momentum: Vector3, speed: f32, player_pos: Vector3, current_next: Vector3, world: &World) -> Vector3 {
+    fn next_pos_until_coll(current_pos: Vector3, target_pos: Vector3, world: &World) -> Vector3 {
         // These are all of the "corners" of a player that could collide with something.
         let player_corners = [
-            player_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
-            player_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
-            player_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
-            player_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
-            player_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
-            player_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
-            player_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
-            player_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
+            current_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
+            current_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
+            current_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
+            current_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
+            current_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
+            current_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
+            current_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
+            current_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
         ];
+        let direction = target_pos - current_pos;
         // This is the max possible we could travel.
-        let mut distance = momentum.length() * speed;
+        let mut distance = direction.length();
         println!("Old distance: {distance}");
         for player_corner in player_corners {
             if let Some(hit) = voxel_raycast(
                 world,
                player_corner.x, player_corner.y, player_corner.z,
-                momentum.x, momentum.y, momentum.z, Some(distance)
+                direction.x, direction.y, direction.z, Some(distance)
             ) {
                 let hit_distance = (hit.raw_coords - player_corner).length();
                 if hit_distance < distance {
@@ -105,10 +107,10 @@ impl Player {
             }
             
         }
-        current_next + momentum * distance
+        current_pos + direction * distance
     }
 
-    fn handle_input(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle, world: &World) {
+    fn handle_input(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle) {
         let mouse_delta = rl.get_mouse_delta();
 
         pd.view_azim += mouse_delta.x * MOUSE_SENS;
@@ -164,7 +166,7 @@ impl Player {
             z: movement_smooth(pd.momentum.z, raw_momentum.z),
         };
 
-        pd.next_pos = Self::next_pos_until_coll(pd.momentum, pd.speed, pd.pos, pd.next_pos, world);
+        pd.next_pos += pd.momentum * pd.speed;
         pd.next_fwd = forward;
     }
 }
