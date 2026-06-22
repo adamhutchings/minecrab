@@ -77,17 +77,17 @@ impl Player {
     // This gets the next position, but only steps forward in the requested
     // direction until the player collides with a block. This way we can handle
     // motion appropriately.
-    fn next_pos_until_coll(momentum: Vector3, speed: f32, starting_pos: Vector3, world: &World) -> Vector3 {
+    fn next_pos_until_coll(momentum: Vector3, speed: f32, player_pos: Vector3, current_next: Vector3, world: &World) -> Vector3 {
         // These are all of the "corners" of a player that could collide with something.
         let player_corners = [
-            starting_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
-            starting_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
-            starting_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
-            starting_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
-            starting_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
-            starting_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
-            starting_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
-            starting_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
+            player_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
+            player_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z: -PLAYER_RADIUS},
+            player_pos + Vector3{x: -PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
+            player_pos + Vector3{x:  PLAYER_RADIUS, y: 0.0, z:  PLAYER_RADIUS},
+            player_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
+            player_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z: -PLAYER_RADIUS},
+            player_pos + Vector3{x: -PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
+            player_pos + Vector3{x:  PLAYER_RADIUS, y: PLAYER_HEIGHT, z:  PLAYER_RADIUS},
         ];
         // This is the max possible we could travel.
         let mut distance = momentum.length() * speed;
@@ -98,16 +98,14 @@ impl Player {
                player_corner.x, player_corner.y, player_corner.z,
                 momentum.x, momentum.y, momentum.z, Some(distance)
             ) {
-                let hit_distance = (hit.raw_coords - starting_pos).length();
-                println!("Hit distance: {hit_distance}");
+                let hit_distance = (hit.raw_coords - player_corner).length();
                 if hit_distance < distance {
                     distance = hit_distance;
                 }
             }
             
         }
-        println!("New distance: {distance}");
-        starting_pos + momentum * distance
+        current_next + momentum * distance
     }
 
     fn handle_input(&mut self, pd: &mut PlayerData, rl: &mut RaylibHandle, world: &World) {
@@ -166,7 +164,7 @@ impl Player {
             z: movement_smooth(pd.momentum.z, raw_momentum.z),
         };
 
-        pd.next_pos = Self::next_pos_until_coll(pd.momentum, pd.speed, pd.pos, world);
+        pd.next_pos = Self::next_pos_until_coll(pd.momentum, pd.speed, pd.pos, pd.next_pos, world);
         pd.next_fwd = forward;
     }
 }

@@ -88,7 +88,7 @@ pub fn voxel_raycast(
                 x: vx, y: vy, z: vz,
                 normal_x: 0., normal_y: 0., normal_z: 0.,
                 u: 0., v: 0.,
-                raw_coords: Vector3{x: voxel[0], y: voxel[1], z: voxel[2]}
+                raw_coords: Vector3{x: pos[0], y: pos[1], z: pos[2]}
             };
 
             match (closest_axis, step_direction) {
